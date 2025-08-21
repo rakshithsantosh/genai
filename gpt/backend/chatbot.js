@@ -1,15 +1,15 @@
 import Groq from "groq-sdk";
 import { tavily } from "@tavily/core";
-//import NodeCache from "node-cache";
+import NodeCache from "node-cache";
 import dotenv from "dotenv";
 dotenv.config();
 
 const tvly = tavily({ apiKey: process.env.TAVILY_API_KEY });
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
-//const cache = new NodeCache({ stdTTL: 60 * 60 * 24 }); // 24 hours
+const cache = new NodeCache({ stdTTL: 60 * 60 * 24 }); // 24 hours
 
-export async function generate(userMessage) {
+export async function generate(userMessage, threadId) {
   const baseMessages = [
     {
       role: "system",
@@ -44,9 +44,7 @@ export async function generate(userMessage) {
     // },
   ];
 
-  //const messages = cache.get(threadId) ?? baseMessages;
-
-  const messages = [...baseMessages];
+  const messages = cache.get(threadId) ?? baseMessages;
 
   messages.push({
     role: "user",
@@ -95,7 +93,7 @@ export async function generate(userMessage) {
 
     if (!toolCalls) {
       // here we end the chatbot response
-      //cache.set(threadId, messages);
+      cache.set(threadId, messages);
       return completions.choices[0].message.content;
     }
 
