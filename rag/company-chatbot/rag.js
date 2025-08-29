@@ -1,3 +1,5 @@
 import { indexTheDocument } from "./prepare.js";
 
-const filePath = "./";
+const filePath = "./AJCamines.pdf";
+
+indexTheDocument(filePath);
