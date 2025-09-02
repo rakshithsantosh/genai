@@ -1,6 +1,8 @@
 import { ChatGroq } from "@langchain/groq";
 import { createReactAgent } from "@langchain/langgraph/prebuilt";
 import { TavilySearch } from "@langchain/tavily";
+import { z } from "zod";
+import { tool } from "@langchain/core/tools";
 
 import dotenv from "dotenv";
 dotenv.config();
@@ -16,16 +18,37 @@ async function main() {
     topic: "general",
   });
 
+  const calendarEvents = tool(
+    async ({ query }) => {
+      return JSON.stringify([
+        {
+          title: "Meeting with Bob",
+          date: "2023-06-01",
+          app: "gmeet",
+        },
+      ]);
+    },
+    {
+      name: "get-calendar-events",
+      description: "call to get information about your calendar events.",
+      schema: z.object({
+        query: z
+          .string()
+          .describe("The query to use in your calender event search."),
+      }),
+    }
+  );
+
   const agent = createReactAgent({
     llm: model,
-    tools: [search],
+    tools: [search, calendarEvents],
   });
 
   const result = await agent.invoke({
     messages: [
       {
         role: "user",
-        content: "What is today's news on AI?",
+        content: "do i have any meeting?",
       },
     ],
   });
